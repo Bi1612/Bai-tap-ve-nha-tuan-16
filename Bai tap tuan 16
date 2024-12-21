@@ -1,0 +1,126 @@
+#include <iostream>
+using namespace std;
+
+class Node {
+public:
+    int key;
+    Node* left;
+    Node* right;
+    int height;
+
+    Node(int value) {
+        key = value;
+        left = nullptr;
+        right = nullptr;
+        height = 1;
+    }
+};
+
+int height(Node* node) {
+    if (node == nullptr)
+        return 0;
+    return node->height;
+}
+
+int getBalance(Node* node) {
+    if (node == nullptr)
+        return 0;
+    return height(node->left) - height(node->right);
+}
+
+Node* rightRotate(Node* y) {
+    Node* x = y->left;
+    Node* T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    y->height = max(height(y->left), height(y->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;  
+}
+
+Node* leftRotate(Node* x) {
+    Node* y = x->right;
+    Node* T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max(height(y->left), height(y->right)) + 1;
+
+    return y; 
+}
+
+Node* leftRightRotate(Node* node) {
+    node->left = leftRotate(node->left);
+    return rightRotate(node);
+}
+
+Node* rightLeftRotate(Node* node) {
+    node->right = rightRotate(node->right);
+    return leftRotate(node);
+}
+
+Node* insert(Node* node, int key) {
+
+    if (node == nullptr)
+        return new Node(key);
+
+    if (key < node->key)
+        node->left = insert(node->left, key);
+    else if (key > node->key)
+        node->right = insert(node->right, key);
+    else
+        return node; 
+
+    node->height = max(height(node->left), height(node->right)) + 1;
+
+    int balance = getBalance(node);
+
+
+    if (balance > 1 && key < node->left->key)
+        return rightRotate(node);
+
+    if (balance < -1 && key > node->right->key)
+        return leftRotate(node);
+
+    if (balance > 1 && key > node->left->key)
+        return leftRightRotate(node);
+
+    if (balance < -1 && key < node->right->key)
+        return rightLeftRotate(node);
+
+    return node; 
+}
+
+void inorder(Node* root) {
+    if (root != nullptr) {
+        inorder(root->left);
+        cout << root->key << " ";
+        inorder(root->right);
+    }
+}
+
+Node* buildAVLTree(int arr[], int n) {
+    Node* root = nullptr;
+    for (int i = 0; i < n; i++) {
+        root = insert(root, arr[i]);
+    }
+    return root;
+}
+
+int main() {
+    int arr[] = {17, 23, 201, 98, 67, 83, 13, 23, 10, 191, 84, 58};
+    int n = sizeof(arr) / sizeof(arr[0]);
+
+    Node* root = buildAVLTree(arr, n);
+
+    cout << "Inorder traversal of AVL tree: ";
+    inorder(root);
+    cout << endl;
+
+    return 0;
+}
